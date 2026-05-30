@@ -2,16 +2,16 @@ import axios from "axios";
 import useChatRes from "../Contexts/ChatContext.jsx/ChatHook";
 
 const userService = new axios.create({
-    baseURL: "http://localhost:3000/api/v1/user",
+    baseURL: "https://zync-backend-tive.onrender.com/api/v1/user",
     withCredentials: true
 })
 const roomService = new axios.create({
-    baseURL: "http://localhost:3000/api/v1/room",
+    baseURL: "https://zync-backend-tive.onrender.com/api/v1/room",
     withCredentials: true
 })
 
 const messageService = new axios.create({
-    baseURL: "http://localhost:3000/api/v1/message",
+    baseURL: "https://zync-backend-tive.onrender.com/api/v1/message",
     withCredentials: true
 })
 export const login = async (data) => {
