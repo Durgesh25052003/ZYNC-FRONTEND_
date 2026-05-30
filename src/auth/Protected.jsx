@@ -10,7 +10,8 @@ export const Protected = () => {
             </div>
         )
     }
-
+    
+    
     if (!user) {
         return <Navigate to="/" replace />;
     }
