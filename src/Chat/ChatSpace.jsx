@@ -185,6 +185,9 @@ const ChatHeader = ({ room, onOpenEdit, callState, onStartCall }) => {
 // ── MessageBubble ─────────────────────────────────────────────────────────────
 
 const MessageBubble = ({ msg, currentUserId }) => {
+
+  const [fullScreenImage, setFullScreenImage] = useState(false);
+
   if (msg?.type === "call-log") {
     return (
       <motion.div initial={{ opacity: 0, y: 8, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: "spring", stiffness: 330, damping: 25 }}
@@ -213,11 +216,24 @@ const MessageBubble = ({ msg, currentUserId }) => {
           </div>
         )}
         {imageSource && (
-          <div style={{ marginTop: msg.content ? 0 : 4, borderRadius: 14, overflow: "hidden", border: "1px solid #2e2e45", maxWidth: 260, boxShadow: "0 4px 16px rgba(0,0,0,0.45)" }}>
+          <div
+            onClick={() => {
+              setFullScreenImage(true);
+            }}
+            style={{ marginTop: msg.content ? 0 : 4, borderRadius: 14, overflow: "hidden", border: "1px solid #2e2e45", maxWidth: 260, boxShadow: "0 4px 16px rgba(0,0,0,0.45)" }}>
             <img src={imageSource} alt="attachment" style={{ display: "block", width: "100%", height: "100%", objectFit: "cover", backgroundColor: "#050509" }} />
           </div>
         )}
-        <span style={{ fontSize: 10, color: "#4e4a60", marginTop: 3, fontFamily: "'DM Sans', sans-serif" }}>{new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" ,day: "2-digit"})}</span>
+        {imageSource && fullScreenImage && (
+          <div
+            onClick={() => {
+              setFullScreenImage(false);
+            }}
+            style={{ zIndex: 999, position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", marginTop: msg.content ? 0 : 4, borderRadius: 14, overflow: "hidden", border: "1px solid #2e2e45", maxWidth: "100vw", boxShadow: "0 4px 16px rgba(0,0,0,0.45)" }}>
+            <img src={imageSource} alt="attachment" style={{ display: "block", width: "60%", height: "80%",objectFit: "contain", backgroundColor: "#050509",boxShadow: "0 4px 16px rgba(0,0,0,0.45)"}} />
+          </div>
+        )}
+        <span style={{ fontSize: 10, color: "#4e4a60", marginTop: 3, fontFamily: "'DM Sans', sans-serif" }}>{new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", day: "2-digit" })}</span>
       </div>
     </motion.div>
   );
