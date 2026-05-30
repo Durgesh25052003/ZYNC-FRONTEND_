@@ -203,7 +203,6 @@ export default function ZyncLogin() {
         email,
         password
       })
-      console.log(res);
       setUser(res.data.user)
   
       socket.connect();  //socket connection
