@@ -203,6 +203,7 @@ export default function ZyncLogin() {
         email,
         password
       })
+      window.localStorage.setItem("user", JSON.stringify(res.data.user));
       setUser(res.data.user)
   
       socket.connect();  //socket connection
