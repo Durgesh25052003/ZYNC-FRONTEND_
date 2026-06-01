@@ -7,6 +7,7 @@ import { socket } from "../Socket/socket";
 import { useAuth } from "../Contexts/AuthHook";
 import { createDMRoom, getRooms, updateRoom, leaveRoom } from "../Services/service";
 import { shapeRoom } from "../utils/ShapeRoom";
+import { Maximize, Minimize } from "lucide-react";
 import {
   addTrackToPeerConnection,
   cleanUp,
@@ -230,7 +231,7 @@ const MessageBubble = ({ msg, currentUserId }) => {
               setFullScreenImage(false);
             }}
             style={{ zIndex: 999, position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", marginTop: msg.content ? 0 : 4, borderRadius: 14, overflow: "hidden", border: "1px solid #2e2e45", maxWidth: "100vw", boxShadow: "0 4px 16px rgba(0,0,0,0.45)" }}>
-            <img src={imageSource} alt="attachment" style={{ display: "block", width: "60%", height: "80%",objectFit: "contain", backgroundColor: "#050509",boxShadow: "0 4px 16px rgba(0,0,0,0.45)"}} />
+            <img src={imageSource} alt="attachment" style={{ display: "block", width: "60%", height: "80%", objectFit: "contain", backgroundColor: "#050509", boxShadow: "0 4px 16px rgba(0,0,0,0.45)" }} />
           </div>
         )}
         <span style={{ fontSize: 10, color: "#4e4a60", marginTop: 3, fontFamily: "'DM Sans', sans-serif" }}>{new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", day: "2-digit" })}</span>
@@ -467,7 +468,7 @@ const EditGroupModal = ({ room, onClose }) => {
 
 // ── CallOverlay ───────────────────────────────────────────────────────────────
 
-const CallOverlay = ({ callState, onAccept, onReject, onEnd, onToggleMic, onToggleCam, micMuted, cameraOff, duration, remoteAudioRef, remoteVideoRef, localVideoRef }) => {
+const CallOverlay = ({ callState, onAccept, onReject, onEnd, onToggleMic, onToggleCam, micMuted, cameraOff, duration, remoteAudioRef, remoteVideoRef, localVideoRef, isFullScreen, callContainerRef, toggleFullScreen }) => {
   const fmt = (s) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
   const Btn = ({ onClick, bg, border, color, size = 50, children, label }) => (
@@ -521,15 +522,58 @@ const CallOverlay = ({ callState, onAccept, onReject, onEnd, onToggleMic, onTogg
 
           {/* Remote video — full width, only shown for active video calls */}
           {isVideo && isActive && (
-            <div style={{ position: "relative", width: "100%", height: 200, background: "#080810" }}>
-              <video ref={remoteVideoRef} autoPlay playsInline style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-              {/* Local video PiP — bottom right corner */}
-              <div style={{ position: "absolute", bottom: 8, right: 8, width: 72, height: 54, borderRadius: 8, overflow: "hidden", border: "2px solid #2e2e45", background: "#080810" }}>
-                <video ref={localVideoRef} autoPlay playsInline muted style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+            <div
+              ref={callContainerRef}
+              className={`relative bg-[#080810] overflow-hidden ${isFullScreen
+                ? "fixed inset-0 z-50 w-screen h-screen"
+                : "w-full h-[200px]"
+                }`}
+            >
+              <button
+                type="button"
+                onClick={toggleFullScreen}
+                className="absolute top-3 right-3 z-20 flex items-center justify-center w-10 h-10 rounded-full bg-zinc-900/70 hover:bg-zinc-800 text-white shadow-lg transition-all duration-200"
+              >
+                {isFullScreen ? <Minimize size={21} /> : <Maximize size={18} />}
+              </button>
+
+              <video
+                ref={remoteVideoRef}
+                autoPlay
+                playsInline
+                className="block w-full h-full object-cover"
+              />
+
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: isFullScreen ? "24px" : "8px",
+                  right: isFullScreen ? "24px" : "8px",
+                  width: isFullScreen ? "240px" : "72px",
+                  height: isFullScreen ? "160px" : "54px",
+                  borderRadius: "8px",
+                  overflow: "hidden",
+                  border: "2px solid #2e2e45",
+                  background: "#080810",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+                  zIndex: 20,
+                }}
+              >
+                <video
+                  ref={localVideoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    display: "block",
+                  }}
+                />
               </div>
             </div>
           )}
-
           <div style={{ padding: "22px 20px 20px", display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
             {/* Hide avatar during active video (video takes its place) */}
             {!(isVideo && isActive) && <PeerAvatar name={peerName} avatar={peerAvatar} size={68} pulse={status === "outgoing" || status === "incoming"} />}
@@ -627,7 +671,8 @@ export default function ChatSpace({ room }) {
   const { user } = useAuth();
   const { setMessages } = useMessageRes();
   const { setROOMS } = useChatRes();
-
+  const callContainerRef = useRef(null);
+  const [isFullScreen, setIsFullScreen] = useState(false);
   const [callState, setCallState] = useState(null);
   const [micMuted, setMicMuted] = useState(false);
   const [cameraOff, setCameraOff] = useState(false);
@@ -685,6 +730,23 @@ export default function ChatSpace({ room }) {
         : r
     )));
   };
+
+  const toggleFullScreen = async () => {
+    if (!document.fullscreenElement) {
+      await callContainerRef.current?.requestFullscreen();
+    } else {
+      await document.exitFullscreen();
+    }
+  };
+
+  useEffect(() => {
+    const handleChange = () => {
+      setIsFullScreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener("fullscreenchange", handleChange);
+    return () => document.removeEventListener("fullscreenchange", handleChange);
+  }, []);
 
   // Called when remote track arrives — keep one persistent remote stream.
   // Replacing srcObject repeatedly can cut audio in some browsers.
@@ -1165,7 +1227,11 @@ export default function ChatSpace({ room }) {
         micMuted={micMuted}
         cameraOff={cameraOff}
         duration={duration}
+        isFullScreen={isFullScreen}
+        setIsFullScreen={setIsFullScreen}
+        callContainerRef={callContainerRef}
         remoteAudioRef={remoteAudioRef}
+        toggleFullScreen={toggleFullScreen}
         remoteVideoRef={remoteVideoRef}
         localVideoRef={localVideoRef}
       />
