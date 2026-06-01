@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
     const fetchUser = async () => {
         try {
             const res = window.localStorage.getItem("user") ? JSON.parse(window.localStorage.getItem("user")) : await getMe();
-            setUser(res.data.data.user);
+            setUser(res);
         } catch {
             setUser(null)
         } finally {
