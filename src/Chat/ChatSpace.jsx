@@ -549,7 +549,7 @@ const CallOverlay = ({ callState, onAccept, onReject, onEnd, onToggleMic, onTogg
                   position: "absolute",
                   bottom: isFullScreen ? "24px" : "8px",
                   right: isFullScreen ? "24px" : "8px",
-                  width: isFullScreen ? "240px" : "72px",
+                  width: isFullScreen ? "180px" : "120px",
                   height: isFullScreen ? "160px" : "54px",
                   borderRadius: "8px",
                   overflow: "hidden",
