@@ -547,7 +547,7 @@ const CallOverlay = ({ callState, onAccept, onReject, onEnd, onToggleMic, onTogg
               <div
                 style={{
                   position: "absolute",
-                  bottom: isFullScreen ? "24px" : "8px",
+                  top: isFullScreen ? "24px" : "8px",
                   right: isFullScreen ? "24px" : "8px",
                   width: isFullScreen ? "180px" : "120px",
                   height: isFullScreen ? "160px" : "54px",
